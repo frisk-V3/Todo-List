@@ -1,14 +1,24 @@
-#include <stdio.h>
+name: Production C Build
 
-// VERSIONはGitHub Actionsから自動で注入されます
-#ifndef VERSION
-#define VERSION "local-dev"
-#endif
+on:
+  push:
+    branches: [ "main" ]
 
-int main() {
-    printf("===============================\n");
-    printf(" Application Launching...\n");
-    printf(" Version (Commit): %s\n", VERSION);
-    printf("===============================\n");
-    return 0;
-}
+jobs:
+  release-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Compile with Commit ID
+      run: |
+        SHORT_SHA=$(git rev-parse --short HEAD)
+        gcc -DVERSION="\"$SHORT_SHA\"" -o app_${SHORT_SHA} main.c
+
+    - name: Upload Executable Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: compiled-application
+        path: app_*
